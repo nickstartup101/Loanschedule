@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ລະບົບຕິດຕາມການເກັບສິນເຊື່ອ</title>
+    <style>
+        body {
+            font-family: 'Phetsarath OT', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #ff3333;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+        .input-field label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .input-field input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .btn-group {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            transition: 0.3s;
+        }
+        .btn-calculate { background-color: #ff3333; }
+        .btn-calculate:hover { background-color: #cc0000; }
+        .btn-reset { background-color: #666; }
+        .btn-reset:hover { background-color: #444; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: right;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: center;
+            font-weight: bold;
+        }
+        td:nth-child(1), td:nth-child(2), td:nth-child(7) {
+            text-align: center; 
+        }
+        
+        /* ສະຖານະຊຳລະແລ້ວ */
+        .paid-row {
+            background-color: #d4edda !important;
+            color: #155724;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .paid-row td:last-child {
+            text-decoration: none;
+            font-weight: bold;
+            color: #dc3545;
+        }
+
+        .btn-pay {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .btn-pay:hover { background-color: #218838; }
+        .btn-pay:disabled { background-color: #6c757d; cursor: not-allowed; }
+
+        .summary-box {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #555;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ຕາຕາລາງຕິດຕາມການເກັບສິນເຊື່ອ</h2>
+
+    <div class="input-group">
+        <div class="input-field">
+            <label>ຊື່ຜູ້ກູ້:</label>
+            <input type="text" id="borrowerName" placeholder="ປ້ອນຊື່..." value="ທ່ານ ສົມໃຈ">
+        </div>
+        <div class="input-field">
+            <label>ວັນທີເລີ່ມສັນຍາ:</label>
+            <input type="date" id="startDate">
+        </div>
+        <div class="input-field">
+            <label>ຈຳນວນເງິນຕົ້ນ (ກີບ):</label>
+            <input type="number" id="principal" value="55000000">
+        </div>
+        <div class="input-field">
+            <label>ຈຳນວນງວດ (ເດືອນ):</label>
+            <input type="number" id="terms" value="36">
+        </div>
+        <div class="input-field">
+            <label>ອັດຕາດອກເບ້ຍຕໍ່ປີ (%):</label>
+            <input type="number" id="interestRate" value="6">
+        </div>
+        <div class="input-field">
+            <label>ຕົ້ນທຶນທັງໝົດ:</label>
+            <input type="text" id="totalPrincipalDisplay" readonly>
+        </div>
+        <div class="input-field">
+            <label>ດອກເບ້ຍທັງໝົດ (ຄາດຄະເນ):</label>
+            <input type="text" id="totalInterestDisplay" readonly>
+        </div>
+        
+        <div class="btn-group">
+            <button class="btn btn-calculate" onclick="generateTable(true)">ຄິດໄລ່ ແລະ ບັນທຶກ</button>
+            <button class="btn btn-reset" onclick="resetData()">ລ້າງຂໍ້ມູນທັງໝົດ</button>
+        </div>
+    </div>
+
+    <div class="summary-box">
+        <span id="displayName"></span>
+        <span id="displayContractPeriod"></span>
+        <span id="displayTotalPay"></span>
+    </div>
+
+    <table id="amortizationTable">
+        <thead>
+            <tr>
+                <th>ຈຳນວນງວດ</th>
+                <th>ວັນທີຄົບກຳນົດ</th>
+                <th>ຕົ້ນທຶນ</th>
+                <th>ດອກເບ້ຍ</th>
+                <th>ຄ່າງວດຕ້ອງຈ່າຍ</th>
+                <th>ຍອດເຫຼືອ (Capacity)</th>
+                <th>ຈັດການ</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- ຂໍ້ມູນຈະຖືກເພີ່ມຜ່ານ JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // ຕັ້ງຄ່າວັນທີປັດຈຸບັນເປັນຄ່າເລີ່ມຕົ້ນຖ້າຍັງບໍ່ມີຂໍ້ມູນບັນທຶກ
+    const savedData = localStorage.getItem('loanData');
+    if (savedData) {
+        loadData();
+    } else {
+        document.getElementById('startDate').valueAsDate = new Date();
+    }
+
+    const formatMoney = (number) => {
+        return number.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const formatDate = (dateObj) => {
+        const d = dateObj.getDate().toString().padStart(2, '0');
+        const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const y = dateObj.getFullYear();
+        return `${d}/${m}/${y}`;
+    };
+
+    // ຟັງຊັນຫຼັກໃນການສ້າງຕາຕາລາງ
+    // isSave = true ໝາຍຄວາມວ່າເປັນການກົດປຸ່ມຄິດໄລ່ໃໝ່ (ຈະລ້າງສະຖານະຊຳລະເກົ່າ)
+    function generateTable(isSave = false) {
+        const borrowerName = document.getElementById('borrowerName').value;
+        const startDateValue = document.getElementById('startDate').value;
+        const principal = parseFloat(document.getElementById('principal').value);
+        const terms = parseInt(document.getElementById('terms').value);
+        const annualRate = parseFloat(document.getElementById('interestRate').value);
+
+        if (!principal || !terms || isNaN(annualRate) || !startDateValue) {
+            alert("ກະລຸນາປ້ອນຂໍ້ມູນ ແລະ ເລືອກວັນທີໃຫ້ຄົບຖ້ວນ!");
+            return;
+        }
+
+        const startDate = new Date(startDateValue);
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + terms);
+
+        const monthlyRate = (annualRate / 100) / 12;
+        const monthlyPrincipal = principal / terms;
+        const monthlyInterest = principal * monthlyRate;
+
+        const totalPrincipal = principal;
+        const totalInterest = monthlyInterest * terms;
+        const totalPayment = totalPrincipal + totalInterest;
+
+        // ດຶງສະຖານະການຊຳລະທີ່ເຄີຍບັນທຶກໄວ້ (ຖ້າມີ)
+        let paidStatus = [];
+        if (!isSave) {
+            const existing = localStorage.getItem('loanPaidStatus');
+            if (existing) paidStatus = JSON.parse(existing);
+        }
+
+        document.getElementById('totalPrincipalDisplay').value = formatMoney(totalPrincipal) + " ₭";
+        document.getElementById('totalInterestDisplay').value = formatMoney(totalInterest) + " ₭";
+        
+        document.getElementById('displayName').innerText = "ຊື່ຜູ້ກູ້: " + borrowerName;
+        document.getElementById('displayContractPeriod').innerText = 
+            `ສັນຍາ: ${formatDate(startDate)} ຫາ ${formatDate(endDate)}`;
+        document.getElementById('displayTotalPay').innerText = "ຍອດລວມຕ້ອງຈ່າຍ: " + formatMoney(totalPayment) + " ₭";
+
+        const tbody = document.querySelector('#amortizationTable tbody');
+        tbody.innerHTML = ''; 
+
+        let remainingBalance = principal;
+
+        for (let i = 1; i <= terms; i++) {
+            let currentPrincipal = monthlyPrincipal;
+            if (i === terms) {
+                currentPrincipal = remainingBalance; 
+            }
+
+            let currentInterest = monthlyInterest;
+            let monthlyPayment = currentPrincipal + currentInterest;
+            remainingBalance -= currentPrincipal;
+
+            if (remainingBalance < 0) remainingBalance = 0;
+
+            // ກວດເບິ່ງວ່າງວດນີ້ຊຳລະແລ້ວຫຼືບໍ່
+            let isPaid = paidStatus[i] === true;
+            
+            // ຖ້າຊຳລະແລ້ວ ໃຫ້ຫຼຸດ Capacity ລົງ 50%
+            let displayBalance = remainingBalance;
+            if (isPaid) {
+                displayBalance = remainingBalance * 0.5;
+            }
+
+            let dueDate = new Date(startDate);
+            dueDate.setMonth(dueDate.getMonth() + i);
+            let dueDateStr = formatDate(dueDate);
+
+            const tr = document.createElement('tr');
+            if (isPaid) tr.classList.add('paid-row');
+
+            tr.innerHTML = `
+                <td>${i}</td>
+                <td>${dueDateStr}</td>
+                <td>${formatMoney(currentPrincipal)}</td>
+                <td>${formatMoney(currentInterest)}</td>
+                <td>${formatMoney(monthlyPayment)}</td>
+                <td>${formatMoney(displayBalance)}</td>
+                <td>
+                    <button class="btn-pay" 
+                            onclick="togglePayment(${i}, this)" 
+                            ${isPaid ? 'disabled' : ''}>
+                        ${isPaid ? 'ຊຳລະແລ້ວ' : 'ກົດຊຳລະ'}
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        if (isSave) {
+            saveData();
+        }
+    }
+
+    // ຟັງຊັນກົດຊຳລະ / ຍົກເລີກຊຳລະ
+    function togglePayment(termNumber, btnElement) {
+        let paidStatus = localStorage.getItem('loanPaidStatus');
+        paidStatus = paidStatus ? JSON.parse(paidStatus) : {};
+
+        // ປ່ຽນສະຖານະ
+        if (paidStatus[termNumber]) {
+            delete paidStatus[termNumber];
+        } else {
+            paidStatus[termNumber] = true;
+        }
+
+        localStorage.setItem('loanPaidStatus', JSON.stringify(paidStatus));
+
+        // ອັບເດດຕາຕາລາງໃໝ່ (isSave = false ເພື່ອຮັກສາສະຖານະອື່ນໆໄວ້)
+        generateTable(false);
+    }
+
+    // ຟັງຊັນບັນທຶກຂໍ້ມູນຫຼັກ
+    function saveData() {
+        const data = {
+            borrowerName: document.getElementById('borrowerName').value,
+            startDate: document.getElementById('startDate').value,
+            principal: document.getElementById('principal').value,
+            terms: document.getElementById('terms').value,
+            interestRate: document.getElementById('interestRate').value
+        };
+        localStorage.setItem('loanData', JSON.stringify(data));
+        
+        // ລ້າງສະຖານະການຊຳລະເກົ່າ ເພາະເປັນການສ້າງສັນຍາໃໝ່
+        localStorage.removeItem('loanPaidStatus');
+        
+        alert("ບັນທຶກຂໍ້ມູນຮຽບຮ້ອຍແລ້ວ!");
+    }
+
+    // ຟັງຊັນໂຫຼດຂໍ້ມູນທີ່ບັນທຶກໄວ້
+    function loadData() {
+        const data = JSON.parse(localStorage.getItem('loanData'));
+        if (data) {
+            document.getElementById('borrowerName').value = data.borrowerName;
+            document.getElementById('startDate').value = data.startDate;
+            document.getElementById('principal').value = data.principal;
+            document.getElementById('terms').value = data.terms;
+            document.getElementById('interestRate').value = data.interestRate;
+            
+            // ສ້າງຕາຕາລາງໂດຍບໍ່ຕ້ອງກົດປຸ່ມ
+            generateTable(false);
+        }
+    }
+
+    // ຟັງຊັນລ້າງຂໍ້ມູນທັງໝົດ
+    function resetData() {
+        if (confirm("ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບຂໍ້ມູນທັງໝົດ? ຂໍ້ມູນທີ່ບັນທຶກໄວ້ຈະຫາຍໄປ.")) {
+            localStorage.removeItem('loanData');
+            localStorage.removeItem('loanPaidStatus');
+            
+            document.getElementById('borrowerName').value = "";
+            document.getElementById('startDate').valueAsDate = new Date();
+            document.getElementById('principal').value = "";
+            document.getElementById('terms').value = "";
+            document.getElementById('interestRate').value = "";
+            
+            document.querySelector('#amortizationTable tbody').innerHTML = '';
+            document.getElementById('totalPrincipalDisplay').value = '';
+            document.getElementById('totalInterestDisplay').value = '';
+            document.getElementById('displayName').innerText = '';
+            document.getElementById('displayContractPeriod').innerText = '';
+            document.getElementById('displayTotalPay').innerText = '';
+        }
+    }
+</script>
+
+</body>
+</html>
